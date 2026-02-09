@@ -11,7 +11,7 @@ const PokeList = ({ pokemons }) => {
   const handleScroll = (e) => {
     const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
     if (bottom) { 
-      // console.log("reached bottom")
+      // 
     }
   }
   

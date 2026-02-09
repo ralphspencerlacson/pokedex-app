@@ -10,9 +10,9 @@ import { getPokemonData } from "../service/pokeapi.js";
 import { removeHyphen, capitalize } from "../utils/StringUtils.js";
 import { isObjectUndefined } from "../utils/ObjectUtils.js";
 // Assets
-import { ReactComponent as Wave1 } from '../assets/waves/wave1.svg';
-import { ReactComponent as Wave2 } from '../assets/waves/wave2.svg';
-import { ReactComponent as Wave3 } from '../assets/waves/wave3.svg';
+import Wave1 from '../assets/waves/wave1.svg?react'
+import Wave2 from '../assets/waves/wave2.svg?react'
+import Wave3 from '../assets/waves/wave3.svg?react'
 import Default from '../assets/default.png';
 // CSS
 import './PokeCard.css';
@@ -88,7 +88,7 @@ const PokeCard = ({ name }) => {
    * @returns {number} The adjusted height after adding 250 units.
    */
   const getPokemonHeight = (height) => height + 250;
-  console.log(getPokemonImage());
+
   return (
     <>
     <div 

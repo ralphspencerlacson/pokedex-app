@@ -6,9 +6,17 @@ import ProgressBar from '../../others/ProgressBar/ProgressBar';
 // Utilities
 import { capitalize, extractRomanNumerals } from '../../../utils/StringUtils';
 // Assets
-import { ReactComponent as External } from '../../../assets/icons/external.svg';
+import External from '../../../assets/icons/external.svg?react'
 // CSS
 import './PokeDetails.css';
+
+// Load type icons as URLs using Vite's glob import (eager) so we don't use `require` in the browser
+const typeIcons = import.meta.glob('/src/assets/poke-types/*.ico', { eager: true, as: 'url' });
+
+function getTypeIcon(name) {
+  const key = Object.keys(typeIcons).find(k => k.endsWith(`/${name}.ico`));
+  return key ? typeIcons[key] : null;
+}
 
 /**
  * PokeDetails component for displaying detailed information about a Pokemon.
@@ -64,7 +72,8 @@ function PokeChar({data, colorScheme}) {
           <div className='type'>
             <h3>Type(s):</h3>
             {data.types.map(({ type }) => { 
-              return <img key={type.name} src={require(`../../../assets/poke-types/${type.name}.ico`)} alt={type.name}/>; 
+              const src = getTypeIcon(type.name);
+              return <img key={type.name} src={src} alt={type.name}/>; 
             })}
           </div>
 
