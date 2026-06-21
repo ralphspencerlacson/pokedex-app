@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 // Component
 import BouncingPokeball from "./others/BouncingPokeball/BouncingPokeball";
 import ToggleShiny from "./others/ToggleShiny/ToggleShiny";
@@ -8,7 +8,7 @@ import PokeDetails from "./modal/contents/PokeDetails";
 import { getPokemonData } from "../service/pokeapi.js";
 // Utils
 import { removeHyphen, capitalize } from "../utils/StringUtils.js";
-import { isObjectUndefined } from "../utils/ObjectUtils.js";
+import { isObjectDefined } from "../utils/ObjectUtils.js";
 // Assets
 import Wave1 from '../assets/waves/wave1.svg?react'
 import Wave2 from '../assets/waves/wave2.svg?react'
@@ -24,6 +24,13 @@ const PokeCard = ({ name }) => {
   const [loading, setLoading] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     // Fetch Pokemon data based on the updated name
@@ -35,21 +42,26 @@ const PokeCard = ({ name }) => {
    * Fetches Pokemon data by name and updates the Pokemon data state.
    */
   const fetchPokemonData = async () => {
+    const currentName = name;
     try {
         // Set loading state to indicate data fetching
         setLoading(true);
 
         // Fetch Pokemon data from the API based on the provided name
         const apiData = await getPokemonData(name);
+        if (name !== currentName) return;
+
         setPokeData(apiData);
         
-        setTimeout(function() {
+        timeoutRef.current = setTimeout(() => {
+          if (name !== currentName) return;
+
           // Turn off loading state and set visibility state after a delay
           setLoading(false);
 
           setIsVisible(true);
           // Set visibility to false after another delay to remove visibility effect
-          setTimeout(() => {
+          timeoutRef.current = setTimeout(() => {
             setIsVisible(false);
           }, 600);
         }, 1200);
@@ -94,7 +106,7 @@ const PokeCard = ({ name }) => {
     <div 
       key={name} 
       className={`card bg-${getBackgroundColor()} ${setFlash()}`}
-      onClick={() => setIsModalOpen(isObjectUndefined(pokeData))}
+      onClick={() => setIsModalOpen(isObjectDefined(pokeData))}
     >
       { !loading ? (
           <>
@@ -104,11 +116,11 @@ const PokeCard = ({ name }) => {
                 setShowShiny={(value) => setIsShiny(value)} 
               />
             )}
-            <p className={`id ${isObjectUndefined(pokeData) ? '' : 'undefined' }`}>{`#${pokeData?.id || 'N/A'}`}</p>
-            <p className={`name-en ${isObjectUndefined(pokeData) ? '' : 'undefined' }`}>{capitalize(removeHyphen(name))}</p>
-            <p className={`region ${isObjectUndefined(pokeData) ? '' : 'undefined' }`}>{`Region: ${capitalize(pokeData?.region)}`}</p>
-            <p className={`height ${isObjectUndefined(pokeData) ? '' : 'undefined' }`}>{`Height: ${pokeData?.height || 'N/A'}`}</p>
-            <p className={`weight ${isObjectUndefined(pokeData) ? '' : 'undefined' }`}>{`Weight: ${pokeData?.weight || 'N/A'}`}</p>
+            <p className={`id ${isObjectDefined(pokeData) ? '' : 'undefined' }`}>{`#${pokeData?.id || 'N/A'}`}</p>
+            <p className={`name-en ${isObjectDefined(pokeData) ? '' : 'undefined' }`}>{capitalize(removeHyphen(name))}</p>
+            <p className={`region ${isObjectDefined(pokeData) ? '' : 'undefined' }`}>{`Region: ${capitalize(pokeData?.region)}`}</p>
+            <p className={`height ${isObjectDefined(pokeData) ? '' : 'undefined' }`}>{`Height: ${pokeData?.height || 'N/A'}`}</p>
+            <p className={`weight ${isObjectDefined(pokeData) ? '' : 'undefined' }`}>{`Weight: ${pokeData?.weight || 'N/A'}`}</p>
             {pokeData ? (
               <img 
                 src={getPokemonImage() ? getPokemonImage() : Default} 

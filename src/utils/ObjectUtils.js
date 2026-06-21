@@ -1,9 +1,9 @@
 /**
- * Checks if the given object is undefined.
+ * Checks if the given object is defined (not undefined).
  * 
  * @param {Object} object - The object to be checked.
- * @returns {boolean} - Returns true if the object is undefined, otherwise false.
+ * @returns {boolean} - Returns true if the object is defined, otherwise false.
  */
-export function isObjectUndefined(object){
+export function isObjectDefined(object){
     return object !== undefined;
 }

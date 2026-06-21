@@ -87,6 +87,11 @@ const Navbar = ({ selectedOption, onSearch, onTypeFilter, onGenerationFilter }) 
             value={query} 
             onChange={handleQueryChange}
         />
+        {query && (
+          <span className="search-clear" onClick={() => { setQuery(''); onSearch(''); }}>
+            &times;
+          </span>
+        )}
       </div>
 
       <div className="filter">

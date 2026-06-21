@@ -33,7 +33,7 @@ const Dropdown = ({ header, options, selectedOption, onSelect }) => {
     const toggleDropdown = () => setIsOpen(!isOpen);
     
     return (
-        <div className='dropdown' onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
+        <div className='dropdown' onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
             <div className='header'>
                 {selectedOption ? selectedOption.name : header}
                  <i className={`arrow ${isOpen ? 'up' : 'down'}`} />
@@ -44,7 +44,7 @@ const Dropdown = ({ header, options, selectedOption, onSelect }) => {
                         <li
                             key={name}
                             className={`option ${value === selectedOption?.value ? 'selected' : ''}`}
-                            onClick={() => handleOptionSelect(value === selectedOption ? '' : {name, value})}
+                            onClick={() => handleOptionSelect(value === selectedOption?.value ? '' : {name, value})}
                         >
                         {name}
                         </li>

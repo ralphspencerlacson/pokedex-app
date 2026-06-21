@@ -30,6 +30,8 @@
     top: 2rem;
     left: 2rem;
     z-index: 100;
+    cursor: default;
+    user-select: none;
 }
 
 
@@ -43,12 +45,16 @@
     color: black;
     font-size: 6rem;
     font-weight: bold;
+    cursor: default;
+    user-select: none;
 } 
 
 .modal .content .visual p.name-jp {
     color: black;
     font-size: 3rem;
     font-weight: bold;
+    cursor: default;
+    user-select: none;
 } 
 
 .modal .content .information {
@@ -61,6 +67,7 @@
     border-radius: 1rem;
     box-shadow: 0 3px 10px rgb(0,0,0,0.2);
     z-index: 1;
+    user-select: none;
 }
 
 .modal .content .information h2 {

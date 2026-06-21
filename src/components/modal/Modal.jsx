@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react";
+// Assets
+import pokeballSound from '../../assets/audio/pokeball-catch.mp3';
 // CSS
 import './Modal.css';
 
@@ -11,6 +14,30 @@ import './Modal.css';
  * @returns {JSX.Element|null} The modal component or null if not open.
  */
 const Modal = ({ isOpen, onClose, children }) => {
+  const audioRef = useRef(null);
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(pokeballSound);
+      }
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   /**
    * Handles the close action of the modal.
    */

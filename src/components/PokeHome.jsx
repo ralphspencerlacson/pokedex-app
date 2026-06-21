@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 // Component
 import Navbar from "./navbar/Navbar";
 import Footer from "./footer/Footer";
 import PokeList from "./PokeList";
+import BouncingPokeball from "./others/BouncingPokeball/BouncingPokeball";
+// Hooks
+import { useDebounce } from "../hooks/useDebounce";
 // Service
 import { getPokemonsSearchData, getPokemonsPaginated, getPokemonById } from "../service/pokeapi.js";
 // Assets
@@ -19,34 +22,48 @@ const PokeHome = () => {
   // Search
   const [search, setSearch] = useState('');
   const [searchData, setSearchData] = useState([]);
-  const [typingTimeout, setTypingTimeout] = useState(null);
+  const [rawQuery, setRawQuery] = useState('');
+  const debouncedQuery = useDebounce(rawQuery, 300);
   // Loading
-  const [loading, setLoading] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const isFirstLoad = useRef(true);
   // Pagination
   const [offset, setOffset] = useState(0);
   const limit = 12;
 
   useEffect(() => {
-    // Fetch search data
     fetchSearchData();
-    
-    // Handle different scenarios based on search state
-    if(!search) {
-      // Fetch pokemons when search is empty
-      fetchPokemons();
-    } else {
-      // Invoke the onSearch callback when search is not empty
-      onSearch(search);
-    }
 
-    // Cleanup function to clear typing timeout
-    return () => {
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-      }
-    };
+    if(!search) {
+      fetchPokemons();
+    }
   // eslint-disable-next-line 
   }, [offset, filter]);
+
+  useEffect(() => {
+    if (!debouncedQuery) {
+      setSearch('');
+      if (rawQuery === '') fetchPokemons();
+      return;
+    }
+
+    if (!isNaN(debouncedQuery)) {
+      fetchPokemonById(debouncedQuery);
+      return;
+    }
+
+    setPokemons([]);
+    setSearch(debouncedQuery);
+
+    const regex = new RegExp(`^${debouncedQuery}`, 'i');
+    const filteredData = searchData?.results?.filter(item => regex.test(item.name)) || [];
+
+    setPokemons({
+      count: filteredData.length,
+      results: filteredData
+    });
+  // eslint-disable-next-line
+  }, [debouncedQuery]);
 
   /**
    * Fetches search data for Pokemon search functionality and updates the search data state.
@@ -73,22 +90,16 @@ const PokeHome = () => {
    */
   const fetchPokemons = async () => {
     try {
-      // Set loading state to indicate data fetching
       setLoading(true);
 
-      
-      // Fetch paginated Pokemon data from the API based on filters and offset
       const apiData = await getPokemonsPaginated(filter.type, filter.gen, offset, limit);
 
       setTimeout(function() {
-          // Update the Pokemon data state with the fetched data
           setPokemons(apiData);
-          
-          // Turn off loading state after a delay
           setLoading(false);
+          isFirstLoad.current = false;
       }, 2800);
     } catch (error) {
-      // Handle errors by logging to the console
       console.error("fetchPokemon: err: " + error);
     }
   }
@@ -126,17 +137,14 @@ const PokeHome = () => {
    * @param {Object} option - The selected type filter option.
    */
   const onTypeFilter = async (option) => {
-    // Reset search, offset, and selected option
     setSearch('');
     setOffset(0);
-    setSelectedOption({'type': option, 'gen': null});
+    setSelectedOption((prev) => ({...prev, 'type': option}));
     
-    // Update filter based on selected option
-    if(!option) {
-      setFilter({'type': 'pokemon-species', 'gen': 'pokemon-species'});
-    } else {
-      setFilter({'type': option.value, 'gen': 'pokemon-species'});
-    }
+    setFilter((prev) => ({
+      'type': option ? option.value : 'pokemon-species',
+      'gen': prev.gen
+    }));
   }
 
   /**
@@ -145,17 +153,14 @@ const PokeHome = () => {
    * @param {Object} option - The selected generation filter option.
    */
   const onGenerationFilter = async (option) => {
-    // Reset search, offset, and selected option
     setSearch('');
     setOffset(0);
-    setSelectedOption({'type': null, 'gen': option});
+    setSelectedOption((prev) => ({...prev, 'gen': option}));
     
-    // Update filter based on selected option
-    if(!option) {
-      setFilter({'type': 'pokemon-species', 'gen': 'pokemon-species'});
-    } else {
-      setFilter({'type': 'pokemon-species', 'gen': option.value, });
-    }
+    setFilter((prev) => ({
+      'type': prev.type,
+      'gen': option ? option.value : 'pokemon-species'
+    }));
   }
 
   /**
@@ -164,56 +169,8 @@ const PokeHome = () => {
    * @param {string} query - The search query entered by the user.
    */
   const onSearch = (query) => {
-    // Clear selected options for type and generation
-    setSelectedOption({
-      type: null,
-      gen: null
-    })
-
-    // Clear the previous timeout if exists
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
-
-    // Set a new timeout to trigger after 1 second of inactivity
-    const newTypingTimeout = setTimeout(() => {
-      // The user has stopped typing, handle the event here
-      
-      if(!query){
-        // If query is empty, reset search and fetch all pokemons
-        setSearch('')
-        fetchPokemons();
-        return;
-      } 
-
-      if(!isNaN(query)) {
-        // If query is a number, fetch a specific Pokemon by ID
-        fetchPokemonById(query);
-      }
-
-      // Clear previous pokemons and set search query 
-      setPokemons([]);
-      setSearch(query);
-
-      // Create a regular expression for case-insensitive matching
-      const regex = new RegExp(`^${query}`, 'i');
-      
-      // Filter search data based on the query
-      const filteredData = searchData.results.filter(item => {
-        const itemName = item.name;
-        return regex.test(itemName);
-      });
-
-      // Update pokemons state with filtered data
-      setPokemons({
-        count: filteredData.length,
-        results: filteredData
-      });
-
-    }, 1000);
-
-    // Set the new typing timeout
-    setTypingTimeout(newTypingTimeout);
+    setSelectedOption({ type: null, gen: null });
+    setRawQuery(query);
   }
 
   return (
@@ -228,9 +185,13 @@ const PokeHome = () => {
           <div className="home">
             <PokeList pokemons={pokemons} />
           </div>
-        ) : (
+        ) : isFirstLoad.current ? (
           <div className="home-loading">
             <img src={runningPikachu} alt='tenor-rafaelfracasso-15385062' />
+          </div>
+        ) : (
+          <div className="home-loading-simple">
+            <BouncingPokeball />
           </div>
         )}
 
@@ -238,7 +199,7 @@ const PokeHome = () => {
           offset={offset}
           limit={limit}
           total={pokemons.count}
-          showPagination={!search || pokemons.count === 0}
+          showPagination={!search && pokemons?.count > limit}
           handlePageClick={(newOffset) =>  setOffset(newOffset)}
         />
     </div>

@@ -51,29 +51,47 @@ export const getPokemonById = async (id) => {
  * @returns {Promise<Object>} A Promise that resolves to the paginated data of Pokemon.
  */
 export const getPokemonsPaginated = async (typeFilter, regionFilter, offset, limit) => {
-    let parameters = "";
     let data = {};
 
     try {
-        if(typeFilter !== 'pokemon-species') {
-            parameters = `type/${typeFilter}`;
-            
-            const response = await axios.get(baseUrl + parameters);
+        const isTypeActive = typeFilter !== 'pokemon-species';
+        const isRegionActive = regionFilter !== 'pokemon-species';
+
+        // Combined filter: intersect type and generation lists
+        if (isTypeActive && isRegionActive) {
+            const [typeResponse, genResponse] = await Promise.all([
+                axios.get(baseUrl + `type/${typeFilter}`),
+                axios.get(baseUrl + `generation/${regionFilter}`)
+            ]);
+
+            const genNames = new Set(
+                genResponse.data.pokemon_species.map((s) => s.name)
+            );
+
+            const allIntersected = typeResponse.data.pokemon.filter((entry) =>
+                genNames.has(entry.pokemon.name)
+            );
+
+            const results = allIntersected.slice(offset, offset + limit);
+
+            data = {
+                count: allIntersected.length,
+                results: results.map((entry) => entry.pokemon)
+            };
+
+        } else if (isTypeActive) {
+            const response = await axios.get(baseUrl + `type/${typeFilter}`);
     
-            // Paginate the results based on the offset and limit
             const results = response.data.pokemon.slice(offset, offset + limit);
     
             data = {
                 count: response?.data.pokemon.length,
-                results: results
+                results: results.map((entry) => entry.pokemon)
             };
             
-        } else if (regionFilter !== 'pokemon-species') {
-            parameters = `generation/${regionFilter}`;
-            
-            const response = await axios.get(baseUrl + parameters);
+        } else if (isRegionActive) {
+            const response = await axios.get(baseUrl + `generation/${regionFilter}`);
     
-            // Paginate the results based on the offset and limit
             const results = response.data.pokemon_species.slice(offset, offset + limit);
     
             data = {
@@ -81,9 +99,7 @@ export const getPokemonsPaginated = async (typeFilter, regionFilter, offset, lim
                 results: results
             };
         } else {
-            parameters = `pokemon-species?offset=${offset}&limit=${limit}`;
-
-            const response = await axios.get(baseUrl + parameters);
+            const response = await axios.get(baseUrl + `pokemon-species?offset=${offset}&limit=${limit}`);
             
             data = {
                 count: response?.data.count,
@@ -132,63 +148,65 @@ export const getPokemonsSearchData = async () => {
  */
 export const getPokemonData = async (name) => {
     try {
-        // Fetch data for the Pokemon species and Pokemon itself
-        const pokemonResponse = await axios.get(baseUrl + `pokemon/${name}`);
-        const speciesResponse = await axios.get(baseUrl + `pokemon-species/${name}`);
-        
-        const [pokemonData, speciesData] = await Promise.all([pokemonResponse, speciesResponse]);
+        // Fetch data for the Pokemon species and Pokemon itself in parallel
+        const [pokemonResponse, speciesResponse] = await Promise.all([
+            axios.get(baseUrl + `pokemon/${name}`),
+            axios.get(baseUrl + `pokemon-species/${name}`)
+        ]);
+        const pokemonData = pokemonResponse.data;
+        const speciesData = speciesResponse.data;
 
         // Fetch Pokemon description asynchronously using the ID from species data
-        const pokemonDesc = await getPokemonDescription(speciesData.data.id);
+        const pokemonDesc = await getPokemonDescription(speciesData.id);
         
         // Assemble and return the detailed Pokemon data
         const data = {
-            id: speciesData.data.id, 
+            id: speciesData.id, 
             name: {
-                en: speciesData.data?.name,
-                jp: speciesData.data?.names[0]?.name
+                en: speciesData?.name,
+                jp: speciesData?.names[0]?.name
             },
             pokedex_entry: pokemonDesc,
-            color: speciesData.data.color.name,
-            generation: speciesData.data.generation.name,
-            region: await getPokemonRegion(speciesData.data.generation.name),
-            evolution: await getPokemonEvolutionChain(speciesData.data.evolution_chain.url),
+            color: speciesData.color.name,
+            generation: speciesData.generation.name,
+            region: await getPokemonRegion(speciesData.generation.name),
+            evolution: await getPokemonEvolutionChain(speciesData.evolution_chain.url),
 
-            height: pokemonData.data.height,
-            weight: pokemonData.data.weight,
-            stats: pokemonData.data.stats,
-            types: pokemonData.data.types,
-            abilities: pokemonData.data.abilities,
-            hasGenderDiff: speciesData.data.has_gender_differences,
-            hasShinyVer: pokemonData?.data?.sprites?.other['official-artwork']?.front_shiny ? true : false,
+            height: pokemonData.height,
+            weight: pokemonData.weight,
+            stats: pokemonData.stats,
+            types: pokemonData.types,
+            abilities: pokemonData.abilities,
+            hasGenderDiff: speciesData.has_gender_differences,
+            hasShinyVer: pokemonData?.sprites?.other['official-artwork']?.front_shiny ? true : false,
             artwork: {
                 default: {
-                    front: pokemonData?.data?.sprites?.other['official-artwork']?.front_default
+                    front: pokemonData?.sprites?.other['official-artwork']?.front_default
                 },
                 shiny: {
-                    front: pokemonData?.data?.sprites?.other['official-artwork']?.front_shiny
+                    front: pokemonData?.sprites?.other['official-artwork']?.front_shiny
                 }
             },
             sprites: {
                 default: {
-                    front: pokemonData.data.sprites.front_default,
-                    back: pokemonData.data.sprites.back_default
+                    front: pokemonData.sprites.front_default,
+                    back: pokemonData.sprites.back_default
                 },
                 default_shiny: {
-                    front: pokemonData.data.sprites?.front_shiny,
-                    back: pokemonData.data.sprites?.back_shiny
+                    front: pokemonData.sprites?.front_shiny,
+                    back: pokemonData.sprites?.back_shiny
                 },
                 female: {
-                    front: pokemonData.data.sprites?.front_female,
-                    back: pokemonData.data.sprites?.back_female
+                    front: pokemonData.sprites?.front_female,
+                    back: pokemonData.sprites?.back_female
                 },
                 female_shiny: {
-                    front: pokemonData.data.sprites?.front_shiny_female,
-                    back: pokemonData.data.sprites?.back_shiny_female
+                    front: pokemonData.sprites?.front_shiny_female,
+                    back: pokemonData.sprites?.back_shiny_female
                 }
             },
 
-            held_items: pokemonData.data.held_items,
+            held_items: pokemonData.held_items,
         }
 
         return data;
