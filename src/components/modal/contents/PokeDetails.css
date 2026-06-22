@@ -47,7 +47,7 @@
     font-weight: bold;
     cursor: default;
     user-select: none;
-} 
+}
 
 .modal .content .visual p.name-jp {
     color: black;
@@ -55,7 +55,25 @@
     font-weight: bold;
     cursor: default;
     user-select: none;
-} 
+}
+
+.modal .content .visual p.name-overlay {
+    position: absolute;
+    z-index: 25;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.modal .content .visual p.name-overlay.name-en {
+    bottom: 6rem;
+    left: 2rem;
+    color: #fff;
+}
+
+.modal .content .visual p.name-overlay.name-jp {
+    bottom: 2rem;
+    left: 2rem;
+    color: rgba(255,255,255,0.8);
+}
 
 .modal .content .information {
     background-color: white;
@@ -172,6 +190,112 @@
 .modal .content .information .stat .container span {
     font-size: 1rem;
     font-weight: bold;
+}
+
+.modal .content .visual {
+  position: relative;
+}
+
+.toggle-3d {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #ccc;
+  border-radius: 0.8rem;
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-3d:hover {
+  background: #fff;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.toggle-3d.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.toggle-3d.loading {
+  opacity: 0.4;
+  cursor: not-allowed;
+  animation: toggle-pulse 1.5s ease-in-out infinite;
+}
+
+.toggle-3d svg {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+@keyframes toggle-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.model-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.model-container.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+
+.model-controls {
+  position: absolute;
+  bottom: 7rem;
+  right: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.zoom-btn {
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.zoom-btn:hover {
+  background: rgba(0,0,0,0.8);
+  border-color: #fff;
+  transform: scale(1.1);
+}
+
+.zoom-btn:active {
+  transform: scale(0.95);
 }
 
 /* lg */

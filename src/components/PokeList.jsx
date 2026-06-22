@@ -5,7 +5,7 @@ import cryingPikachu from "../assets/pikachu/crying-pikachu.png"
 // CSS
 import './PokeList.css';
 
-const PokeList = ({ pokemons }) => {
+const PokeList = ({ pokemons, pokemon3dData }) => {
 
   // Not in use
   const handleScroll = (e) => {
@@ -20,7 +20,7 @@ const PokeList = ({ pokemons }) => {
     {pokemons.count !== 0 ? (
       <div className="list" onScroll={handleScroll}>
         {pokemons?.results?.map((pokemon) => (
-          <PokeCard key={pokemon.name} name={pokemon.name || pokemon.pokemon.name} />
+          <PokeCard key={pokemon.name} name={pokemon.name || pokemon.pokemon.name} pokemon3dData={pokemon3dData} />
         ))}
       </div>
     ) : (

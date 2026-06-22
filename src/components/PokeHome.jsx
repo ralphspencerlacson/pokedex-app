@@ -7,7 +7,7 @@ import BouncingPokeball from "./others/BouncingPokeball/BouncingPokeball";
 // Hooks
 import { useDebounce } from "../hooks/useDebounce";
 // Service
-import { getPokemonsSearchData, getPokemonsPaginated, getPokemonById } from "../service/pokeapi.js";
+import { getPokemonsSearchData, getPokemonsPaginated, getPokemonById, getPokemon3dData } from "../service/pokeapi.js";
 // Assets
 import runningPikachu from '../assets/pikachu/running-pikachu.gif';
 // CSS
@@ -20,6 +20,9 @@ const PokeHome = () => {
   const [filter, setFilter] = useState({'type': 'pokemon-species', 'gen': 'pokemon-species'});
   const [selectedOption, setSelectedOption] = useState({'type': null, 'gen': null})
   // Search
+  // 3D Data
+  const [pokemon3dData, setPokemon3dData] = useState([]);
+
   const [search, setSearch] = useState('');
   const [searchData, setSearchData] = useState([]);
   const [rawQuery, setRawQuery] = useState('');
@@ -33,6 +36,7 @@ const PokeHome = () => {
 
   useEffect(() => {
     fetchSearchData();
+    fetch3dData();
 
     if(!search) {
       fetchPokemons();
@@ -110,6 +114,15 @@ const PokeHome = () => {
    * @param {number} id - The ID of the Pokemon to fetch.
    * @throws {Error} If there's an error during the Pokemon data fetch.
    */
+  const fetch3dData = async () => {
+    try {
+      const data = await getPokemon3dData();
+      setPokemon3dData(data);
+    } catch (error) {
+      console.error("fetch3dData: err: " + error);
+    }
+  }
+
   const fetchPokemonById = async (id) => {
     try {
       // Set loading state to indicate data fetching
@@ -183,7 +196,7 @@ const PokeHome = () => {
       />
         {!loading ? (
           <div className="home">
-            <PokeList pokemons={pokemons} />
+            <PokeList pokemons={pokemons} pokemon3dData={pokemon3dData} />
           </div>
         ) : isFirstLoad.current ? (
           <div className="home-loading">

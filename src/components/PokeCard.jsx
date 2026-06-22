@@ -17,7 +17,7 @@ import Default from '../assets/default.png';
 // CSS
 import './PokeCard.css';
 
-const PokeCard = ({ name }) => {
+const PokeCard = ({ name, pokemon3dData }) => {
   const [pokeData, setPokeData] = useState(null);
   const [isShiny, setIsShiny] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -143,7 +143,7 @@ const PokeCard = ({ name }) => {
 
     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
 
-      <PokeDetails pokeData={pokeData} colorScheme={getBackgroundColor()}/>
+      <PokeDetails pokeData={pokeData} colorScheme={getBackgroundColor()} pokemon3dData={pokemon3dData} isShiny={isShiny}/>
       <div className="waves">
         <Wave1 className={`wave1 c-${getBackgroundColor()}`}/>
         <Wave2 className={`wave2 c-${getBackgroundColor()}`}/>

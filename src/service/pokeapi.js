@@ -241,6 +241,31 @@ export const getPokemonRegion = async (generation) => {
  *
  * @returns {Promise<Object[]>} A Promise that resolves to an array of transformed Pokemon types data.
  */
+/**
+ * Fetches 3D model data for all Pokemon from the 3D API.
+ * Uses a module-level cache to avoid duplicate requests.
+ *
+ * @returns {Promise<Array>} A Promise that resolves to an array of Pokemon 3D data.
+ */
+let _3dDataCache = null;
+let _3dDataPromise = null;
+export const getPokemon3dData = async () => {
+  if (_3dDataCache) return _3dDataCache;
+  if (_3dDataPromise) return _3dDataPromise;
+  _3dDataPromise = axios.get('https://pokemon-3d-api.onrender.com/v1/pokemon')
+    .then(res => {
+      _3dDataCache = res.data;
+      _3dDataPromise = null;
+      return _3dDataCache;
+    })
+    .catch(err => {
+      console.error('getPokemon3dData: err: ' + err);
+      _3dDataPromise = null;
+      return [];
+    });
+  return _3dDataPromise;
+};
+
 export const getPokemonTypes = async () => {
     // Construct the API endpoint for the Pokemon types data
     let parameters = `type`;

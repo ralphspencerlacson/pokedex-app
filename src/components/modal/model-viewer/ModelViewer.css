@@ -1,0 +1,8 @@
+.model-viewer-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.model-viewer-canvas canvas {
+  display: block;
+}
